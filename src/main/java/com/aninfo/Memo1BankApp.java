@@ -1,7 +1,9 @@
 package com.aninfo;
 
 import com.aninfo.model.Account;
+import com.aninfo.model.Transaction;
 import com.aninfo.service.AccountService;
+import com.aninfo.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+
+import springfox.documentation.annotations.ApiIgnore;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
@@ -27,6 +32,9 @@ public class Memo1BankApp {
 	@Autowired
 	private AccountService accountService;
 
+	@Autowired
+	private TransactionService transactionService;
+
 	public static void main(String[] args) {
 		SpringApplication.run(Memo1BankApp.class, args);
 	}
@@ -37,6 +45,7 @@ public class Memo1BankApp {
 		return accountService.createAccount(account);
 	}
 
+	@ApiIgnore
 	@GetMapping("/accounts")
 	public Collection<Account> getAccounts() {
 		return accountService.getAccounts();
@@ -48,6 +57,7 @@ public class Memo1BankApp {
 		return ResponseEntity.of(accountOptional);
 	}
 
+	@ApiIgnore
 	@PutMapping("/accounts/{cbu}")
 	public ResponseEntity<Account> updateAccount(@RequestBody Account account, @PathVariable Long cbu) {
 		Optional<Account> accountOptional = accountService.findById(cbu);
@@ -60,20 +70,46 @@ public class Memo1BankApp {
 		return ResponseEntity.ok().build();
 	}
 
+	@ApiIgnore
 	@DeleteMapping("/accounts/{cbu}")
 	public void deleteAccount(@PathVariable Long cbu) {
 		accountService.deleteById(cbu);
 	}
 
+	@ApiIgnore
 	@PutMapping("/accounts/{cbu}/withdraw")
 	public Account withdraw(@PathVariable Long cbu, @RequestParam Double sum) {
 		return accountService.withdraw(cbu, sum);
 	}
 
+	@ApiIgnore
 	@PutMapping("/accounts/{cbu}/deposit")
 	public Account deposit(@PathVariable Long cbu, @RequestParam Double sum) {
 		return accountService.deposit(cbu, sum);
 	}
+
+
+	@PostMapping("/accounts/{cbu}/transactions")
+	public Transaction createTransaction(@PathVariable Long cbu, @RequestParam Double sum,@RequestParam String transactionType){
+		return transactionService.createTransaction(cbu,sum,transactionType);
+	}
+
+	@GetMapping("/accounts/{cbu}/transactions")
+	public List<Transaction> getTransactions(@PathVariable Long cbu) {
+		return transactionService.getTransactions(cbu);
+	}
+
+	@DeleteMapping("/accounts/{cbu}/transactions")
+	public void deleteTransaction(@RequestParam Long id, @PathVariable String cbu){
+		transactionService.deleteById(id);
+	}
+
+	@GetMapping("/accounts/transactions/{id}")
+	public ResponseEntity<Transaction> getTransaction(@PathVariable Long id) {
+		Optional<Transaction> transactionOptional = transactionService.findById(id);
+		return ResponseEntity.of(transactionOptional);
+	}
+
 
 	@Bean
 	public Docket apiDocket() {
